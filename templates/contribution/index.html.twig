@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contribution index{% endblock %}
+
+{% block body %}
+    <h1>Contribution index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Description</th>
+                <th>Montant</th>
+                <th>Date</th>
+                <th>TypeContribution</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for contribution in contributions %}
+            <tr>
+                <td>{{ contribution.id }}</td>
+                <td>{{ contribution.description }}</td>
+                <td>{{ contribution.montant }}</td>
+                <td>{{ contribution.date ? contribution.date|date('Y-m-d') : '' }}</td>
+                <td>{{ contribution.typeContribution }}</td>
+                <td>
+                    <a href="{{ path('app_contribution_show', {'id': contribution.id}) }}">show</a>
+                    <a href="{{ path('app_contribution_edit', {'id': contribution.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_contribution_new') }}">Create new</a>
+{% endblock %}

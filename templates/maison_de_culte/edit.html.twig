@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit MaisonDeCulte{% endblock %}
+
+{% block body %}
+    <h1>Edit MaisonDeCulte</h1>
+
+    {{ include('maison_de_culte/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_maison_de_culte_index') }}">back to list</a>
+
+    {{ include('maison_de_culte/_delete_form.html.twig') }}
+{% endblock %}

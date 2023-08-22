@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Donateur{% endblock %}
+
+{% block body %}
+    <h1>Donateur</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ donateur.id }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ donateur.email }}</td>
+            </tr>
+            <tr>
+                <th>Roles</th>
+                <td>{{ donateur.roles ? donateur.roles|json_encode : '' }}</td>
+            </tr>
+            <tr>
+                <th>Password</th>
+                <td>{{ donateur.password }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ donateur.nom }}</td>
+            </tr>
+            <tr>
+                <th>Prenom</th>
+                <td>{{ donateur.prenom }}</td>
+            </tr>
+            <tr>
+                <th>Adresse</th>
+                <td>{{ donateur.adresse }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_donateur_index') }}">back to list</a>
+
+    <a href="{{ path('app_donateur_edit', {'id': donateur.id}) }}">edit</a>
+
+    {{ include('donateur/_delete_form.html.twig') }}
+{% endblock %}

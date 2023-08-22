@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MaisonDeCulte index{% endblock %}
+
+{% block body %}
+    <h1>MaisonDeCulte index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Responsable</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for maison_de_culte in maison_de_cultes %}
+            <tr>
+                <td>{{ maison_de_culte.id }}</td>
+                <td>{{ maison_de_culte.nom }}</td>
+                <td>{{ maison_de_culte.adresse }}</td>
+                <td>{{ maison_de_culte.responsable }}</td>
+                <td>
+                    <a href="{{ path('app_maison_de_culte_show', {'id': maison_de_culte.id}) }}">show</a>
+                    <a href="{{ path('app_maison_de_culte_edit', {'id': maison_de_culte.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_maison_de_culte_new') }}">Create new</a>
+{% endblock %}

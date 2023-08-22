@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Donateur index{% endblock %}
+
+{% block body %}
+    <h1>Donateur index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Password</th>
+                <th>Nom</th>
+                <th>Prenom</th>
+                <th>Adresse</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for donateur in donateurs %}
+            <tr>
+                <td>{{ donateur.id }}</td>
+                <td>{{ donateur.email }}</td>
+                <td>{{ donateur.roles ? donateur.roles|json_encode : '' }}</td>
+                <td>{{ donateur.password }}</td>
+                <td>{{ donateur.nom }}</td>
+                <td>{{ donateur.prenom }}</td>
+                <td>{{ donateur.adresse }}</td>
+                <td>
+                    <a href="{{ path('app_donateur_show', {'id': donateur.id}) }}">show</a>
+                    <a href="{{ path('app_donateur_edit', {'id': donateur.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_donateur_new') }}">Create new</a>
+{% endblock %}
