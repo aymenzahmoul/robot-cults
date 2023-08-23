@@ -68,6 +68,8 @@ class Projet
     #[ORM\OneToMany(mappedBy: 'projet', targetEntity: Paiement::class)]
     private Collection $Paiement;
 
+  
+
     
 
     public function __construct()

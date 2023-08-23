@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FlashInfo index{% endblock %}
+
+{% block body %}
+    <h1>FlashInfo index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>DateDebut</th>
+                <th>DateFin</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for flash_info in flash_infos %}
+            <tr>
+                <td>{{ flash_info.id }}</td>
+                <td>{{ flash_info.titre }}</td>
+                <td>{{ flash_info.description }}</td>
+                <td>{{ flash_info.dateDebut ? flash_info.dateDebut|date('Y-m-d') : '' }}</td>
+                <td>{{ flash_info.dateFin ? flash_info.dateFin|date('Y-m-d') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_flash_info_show', {'id': flash_info.id}) }}">show</a>
+                    <a href="{{ path('app_flash_info_edit', {'id': flash_info.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+ 
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FlashInfo{% endblock %}
+
+{% block body %}
+    <h1>FlashInfo</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ flash_info.id }}</td>
+            </tr>
+            <tr>
+                <th>Titre</th>
+                <td>{{ flash_info.titre }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ flash_info.description }}</td>
+            </tr>
+            <tr>
+                <th>DateDebut</th>
+                <td>{{ flash_info.dateDebut ? flash_info.dateDebut|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>DateFin</th>
+                <td>{{ flash_info.dateFin ? flash_info.dateFin|date('Y-m-d') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_flash_info_index') }}">back to list</a>
+
+    <a href="{{ path('app_flash_info_edit', {'id': flash_info.id}) }}">edit</a>
+
+    {{ include('flash_info/_delete_form.html.twig') }}
+{% endblock %}

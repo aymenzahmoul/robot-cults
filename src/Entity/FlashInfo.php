@@ -11,7 +11,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: FlashInfoRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['FlashInfo']],
 )]
 class FlashInfo
 {
