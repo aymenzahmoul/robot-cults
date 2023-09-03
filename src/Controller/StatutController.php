@@ -7,12 +7,14 @@ use App\Form\StatutType;
 use App\Repository\ProjetRepository;
 use App\Repository\StatutRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/statut')]
+#[Route('/api')]
 class StatutController extends AbstractController
 {
     #[Route('/', name: 'app_statut_index', methods: ['GET'])]
@@ -23,30 +25,42 @@ class StatutController extends AbstractController
         ]);
     }
 
-    #[Route('/new/{projetid}', name: 'app_statut_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, int $projetid ,ProjetRepository $projetRepository): Response
+    #[Route('/statut/create/{projetid}', name: 'api_statut_create', methods: ['POST'])]
+    public function createStatut(int $projetid, ManagerRegistry $doctrine, Request $request, ProjetRepository $projetRepository): JsonResponse
     {
+        $entityManager = $doctrine->getManager();
+        $decoded = json_decode($request->getContent());
+    
+      
+        $statique = $decoded->statique;
+        $enCours = $decoded->enCours;
+        $terminer = $decoded->terminer;
+        $suspendu = $decoded->suspendu;
+        // Convertir les chaînes de date en objets DateTime
+    
+        // Récupérer l'entité Projet en fonction de l'ID fourni dans projetid
         $projet = $projetRepository->find($projetid);
+    
         if (!$projet) {
-            throw $this->createNotFoundException('User not found');
+            throw $this->createNotFoundException('Projet introuvable');
         }
+    
         $statut = new Statut();
         $statut->setProjet($projet);
-        $form = $this->createForm(StatutType::class, $statut);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($statut);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_statut_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->renderForm('statut/new.html.twig', [
-            'statut' => $statut,
-            'form' => $form,
-        ]);
+        $statut->setStatique($statique);
+        $statut->setEnCours($enCours);
+        $statut->setTerminer($terminer);
+        $statut->setSuspendu($suspendu);
+     
+    
+        // Logique supplémentaire spécifique à l'entité Statut
+    
+        $entityManager->persist($statut);
+        $entityManager->flush();
+    
+        return $this->json(['message' => 'Statut créé avec succès']);
     }
+    
 
     #[Route('/{id}', name: 'app_statut_show', methods: ['GET'])]
     public function show(Statut $statut): Response
@@ -56,32 +70,42 @@ class StatutController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_statut_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Statut $statut, EntityManagerInterface $entityManager): Response
+    #[Route('/statut/update/{id}', name: 'api_statut_update', methods: ['PUT'])]
+    public function updateStatut(int $id, Request $request, StatutRepository $statutRepository, EntityManagerInterface $entityManager): JsonResponse
     {
-        $form = $this->createForm(StatutType::class, $statut);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_statut_index', [], Response::HTTP_SEE_OTHER);
+        $decoded = json_decode($request->getContent());
+    
+        $statut = $statutRepository->find($id);
+    
+        if (!$statut) {
+            throw $this->createNotFoundException('Statut introuvable');
         }
-
-        return $this->renderForm('statut/edit.html.twig', [
-            'statut' => $statut,
-            'form' => $form,
-        ]);
+    
+        $statut->setStatique($decoded->statique);
+        $statut->setEnCours($decoded->enCours);
+        $statut->setTerminer($decoded->terminer);
+        $statut->setSuspendu($decoded->suspendu);
+    
+        // Autres mises à jour nécessaires
+    
+        $entityManager->flush();
+    
+        return $this->json(['message' => 'Statut mis à jour avec succès']);
     }
 
-    #[Route('/{id}', name: 'app_statut_delete', methods: ['POST'])]
-    public function delete(Request $request, Statut $statut, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$statut->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($statut);
-            $entityManager->flush();
-        }
+#[Route('/statut/delete/{id}', name: 'api_statut_delete', methods: ['DELETE'])]
+public function deleteStatut(int $id, StatutRepository $statutRepository, EntityManagerInterface $entityManager): JsonResponse
+{
+    $statut = $statutRepository->find($id);
 
-        return $this->redirectToRoute('app_statut_index', [], Response::HTTP_SEE_OTHER);
+    if (!$statut) {
+        throw $this->createNotFoundException('Statut introuvable');
     }
+
+    // Supprimer le statut de la base de données
+    $entityManager->remove($statut);
+    $entityManager->flush();
+
+    return $this->json(['message' => 'Statut supprimé avec succès']);
+}
 }

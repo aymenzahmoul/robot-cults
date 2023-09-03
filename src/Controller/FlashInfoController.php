@@ -7,12 +7,14 @@ use App\Form\FlashInfoType;
 use App\Repository\FlashInfoRepository;
 use App\Repository\MaisonDeCulteRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/flash/info')]
+#[Route('/api')]
 class FlashInfoController extends AbstractController
 {
     #[Route('/', name: 'app_flash_info_index', methods: ['GET'])]
@@ -23,33 +25,43 @@ class FlashInfoController extends AbstractController
         ]);
     }
 
-    #[Route('/new/{masiondeculteid}', name: 'app_flash_info_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, int $masiondeculteid, MaisonDeCulteRepository $maisonDeCulteRepository): Response
+    #[Route('/flashinfo/create/{maisondeculteid}', name: 'flashinfo_create', methods: ['POST'])]
+    public function create(int $maisondeculteid, ManagerRegistry $doctrine, Request $request, MaisonDeCulteRepository $maisonDeCulteRepository): JsonResponse
     {
-        $maisonDeCulte = $maisonDeCulteRepository->find($masiondeculteid);
-
+        $entityManager = $doctrine->getManager();
+        $em = $doctrine->getManager();
+        $decoded = json_decode($request->getContent());
+        $titre = $decoded->titre;
+        $description = $decoded->description;
+        $dateDebut = new \DateTime($decoded->dateDebut);
+        $dateFin = new \DateTime($decoded->dateFin);
+        // Récupérer la MaisonDeCulte en fonction de l'ID fourni dans maisondeculteid
+        $maisonDeCulte = $maisonDeCulteRepository->find($maisondeculteid);
+    
         if (!$maisonDeCulte) {
-            throw $this->createNotFoundException('User not found');
+            throw $this->createNotFoundException('Maison de culte non trouvée');
         }
-
-        $flashInfo = new FlashInfo();
-        $flashInfo->setMaisonDeCulte($maisonDeCulte); // Set the user retrieved from MaisonDeCulteRepository
-
-        $form = $this->createForm(FlashInfoType::class, $flashInfo);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($flashInfo);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_flash_info_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->renderForm('flash_info/new.html.twig', [
-            'flash_info' => $flashInfo,
-            'form' => $form,
-        ]);
+    
+        $em->persist($maisonDeCulte);
+        $em->flush();
+    
+        $flashinfo = new Flashinfo();
+        $flashinfo->setMaisonDeCulte($maisonDeCulte);
+        $flashinfo->setTitre($titre);
+        $flashinfo->setDescription($description);
+        $flashinfo->setDateDebut($dateDebut);
+        $flashinfo->setDateFin($dateFin);
+        // Logique supplémentaire spécifique à l'entité Flashinfo
+    
+        $entityManager->persist($flashinfo);
+        $entityManager->flush();
+    
+        $em->flush();
+    
+        return $this->json(['message' => 'Succès']);
     }
+    
+    
     #[Route('/{id}', name: 'app_flash_info_show', methods: ['GET'])]
     public function show(FlashInfo $flashInfo): Response
     {
@@ -57,33 +69,64 @@ class FlashInfoController extends AbstractController
             'flash_info' => $flashInfo,
         ]);
     }
+    #[Route('/flashinfo/{id}', name: 'flashinfo_read', methods: ['GET'])]
+public function read(int $id, FlashinfoRepository $flashinfoRepository): JsonResponse
+{
+    $flashinfo = $flashinfoRepository->find($id);
 
-    #[Route('/{id}/edit', name: 'app_flash_info_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, FlashInfo $flashInfo, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(FlashInfoType::class, $flashInfo);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_flash_info_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->renderForm('flash_info/edit.html.twig', [
-            'flash_info' => $flashInfo,
-            'form' => $form,
-        ]);
+    if (!$flashinfo) {
+        throw $this->createNotFoundException('Flashinfo non trouvé');
     }
 
-    #[Route('/{id}', name: 'app_flash_info_delete', methods: ['POST'])]
-    public function delete(Request $request, FlashInfo $flashInfo, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$flashInfo->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($flashInfo);
-            $entityManager->flush();
-        }
+    // Vous pouvez personnaliser la réponse JSON pour inclure les détails du flashinfo
+    return $this->json([
+        'id' => $flashinfo->getId(),
+        'titre' => $flashinfo->getTitre(),
+        'description' => $flashinfo->getDescription(),
+        'dateDebut' => $flashinfo->getDateDebut(),
+        'dateFin' => $flashinfo->getDateFin(),
+        // Autres champs du flashinfo
+    ]);
+}
 
-        return $this->redirectToRoute('app_flash_info_index', [], Response::HTTP_SEE_OTHER);
+
+#[Route('/flashinfo/update/{id}', name: 'flashinfo_update', methods: ['PUT'])]
+public function update(int $id, Request $request, FlashinfoRepository $flashinfoRepository, EntityManagerInterface $entityManager): JsonResponse
+{
+    $decoded = json_decode($request->getContent());
+
+    $flashinfo = $flashinfoRepository->find($id);
+
+    if (!$flashinfo) {
+        throw $this->createNotFoundException('Flashinfo non trouvé');
     }
+
+    $flashinfo->setTitre($decoded->titre);
+    $flashinfo->setDescription($decoded->description);
+    $flashinfo->setDateDebut(new \DateTime($decoded->dateDebut));
+    $flashinfo->setDateFin(new \DateTime($decoded->dateFin));
+
+    // Autres mises à jour nécessaires
+
+    $entityManager->flush();
+
+    return $this->json(['message' => 'Flashinfo mis à jour avec succès']);
+}
+
+
+#[Route('/flashinfo/delete/{id}', name: 'flashinfo_delete', methods: ['DELETE'])]
+public function delete(int $id, FlashinfoRepository $flashinfoRepository, EntityManagerInterface $entityManager): JsonResponse
+{
+    $flashinfo = $flashinfoRepository->find($id);
+
+    if (!$flashinfo) {
+        throw $this->createNotFoundException('Flashinfo non trouvé');
+    }
+
+    // Supprimer le flashinfo de la base de données
+    $entityManager->remove($flashinfo);
+    $entityManager->flush();
+
+    return $this->json(['message' => 'Flashinfo supprimé avec succès']);
+}
 }

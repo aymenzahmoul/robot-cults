@@ -46,34 +46,17 @@ class Paiement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'paiements')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Projet $projet = null;
-
     #[ORM\Column(type: 'date')]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\ManyToOne(inversedBy: 'paiements')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
+ 
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getProjet(): ?Projet
-    {
-        return $this->projet;
-    }
-
-    public function setProjet(?Projet $projet): static
-    {
-        $this->projet = $projet;
-
-        return $this;
-    }
-
+    
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -86,15 +69,5 @@ class Paiement
         return $this;
     }
 
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
+   
 }

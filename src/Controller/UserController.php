@@ -2,18 +2,25 @@
 
 namespace App\Controller;
 
+use App\Entity\Role;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/user')]
+
+#[Route('/users')]
 class UserController extends AbstractController
 {
+
+
+
+
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
     public function index(UserRepository $userRepository): Response
     {
@@ -78,5 +85,32 @@ class UserController extends AbstractController
         }
 
         return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+
+
+    private EntityManagerInterface $entityManager;
+
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+         // Assurez-vous que le service de sécurité est correctement injecté ici
+    }
+
+    #[Route('/users/{id}/change-role/{newRole}', name: 'user_change_role', methods: ['PUT'])]
+    public function changeRole(User $user, Role $newRole): Response
+    {
+        // Check if the user has permission to perform this action
+        if (!$user->isAdmin()) {
+            throw $this->createAccessDeniedException('You do not have permission to change roles.');
+        }
+
+        // Add the new role to the user
+        $user->addRole($newRole);
+
+        $this->entityManager->flush();
+
+        return new Response(sprintf('Role "%s" added to user.', $newRole->getName()));
     }
 }

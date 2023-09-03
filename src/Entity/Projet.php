@@ -58,15 +58,14 @@ class Projet
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $dateFin = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $statut = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'projets')]
     #[ORM\JoinColumn(nullable: false)]
     private ?MaisonDeCulte $maisonDeCulte = null;
 
-    #[ORM\OneToMany(mappedBy: 'projet', targetEntity: Paiement::class)]
-    private Collection $Paiement;
+    #[ORM\OneToMany(mappedBy: 'projet', targetEntity: Contribution::class)]
+    private Collection $Contribution;
 
   
 
@@ -74,7 +73,7 @@ class Projet
 
     public function __construct()
     {
-        $this->Paiement = new ArrayCollection();
+        $this->Contribution = new ArrayCollection();
     }
 
 
@@ -144,17 +143,7 @@ class Projet
         return $this;
     }
 
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(string $statut): static
-    {
-        $this->statut = $statut;
-
-        return $this;
-    }
+  
 
     public function getMaisonDeCulte(): ?maisonDeCulte
     {
@@ -170,26 +159,26 @@ class Projet
 
 
     /**
-     * @return Collection<int, Paiement>
+     * @return Collection<int, Contribution>
      */
-    public function getPaiement(): Collection
+    public function getContribution(): Collection
     {
-        return $this->Paiement;
+        return $this->Contribution;
     }
 
-    public function addPaiement(Paiement $paiement): static
+    public function addContribution(Contribution $contribution): static
     {
-        if (!$this->Paiement->contains($paiement)) {
-            $this->Paiement->add($paiement);
-            $paiement->setProjet($this);
+        if (!$this->Contribution->contains($contribution)) {
+            $this->Contribution->add($contribution);
+            $contribution->setProjet($this);
         }
 
         return $this;
     }
 
-    public function removePaiement(Paiement $paiement): static
+    public function removeContribution(Contribution $paiement): static
     {
-        if ($this->Paiement->removeElement($paiement)) {
+        if ($this->Contribution->removeElement($paiement)) {
             // set the owning side to null (unless already changed)
             if ($paiement->getProjet() === $this) {
                 $paiement->setProjet(null);

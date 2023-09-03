@@ -34,7 +34,15 @@ class Contribution
     #[ORM\Column(length: 255)]
     private ?string $typeContribution = null;
 
-   
+    #[ORM\ManyToOne(inversedBy: 'contributions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Projet $projet = null;
+
+  
+    #[ORM\ManyToOne(inversedBy: 'contributions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -87,6 +95,27 @@ class Contribution
 
         return $this;
     }
+    public function getProjet(): ?Projet
+    {
+        return $this->projet;
+    }
 
+    public function setProjet(?Projet $projet): static
+    {
+        $this->projet = $projet;
 
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 }

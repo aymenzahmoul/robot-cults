@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Symfony\Component\Security\Core\Security;
 #[Route('/paiement')]
 class PaiementController extends AbstractController
 {
@@ -25,25 +25,22 @@ class PaiementController extends AbstractController
     }
 
     #[Route('/new/{userid}/{projetid}', name: 'app_paiement_new', methods: ['GET', 'POST'])]
-    public function new(int $userid, int $projetid, Request $request, UserRepository $userRepository, ProjetRepository $projetRepository, EntityManagerInterface $entityManager): Response
+    public function new(int $userid, int $projetid, Request $request, UserRepository $userRepository, ProjetRepository $projetRepository, EntityManagerInterface $entityManager, Security $security): Response
     {
-        // Retrieve the User entity based on the provided userid
-        $user = $userRepository->find($userid);
-
-        if (!$user) {
-            throw $this->createNotFoundException('User not found');
+        // Check if the user has the required role or is anonymous
+        if (!$security->isGranted('ROLE_DONATEUR') && !$security->isGranted('ROLE_VISITER')) {
+            throw $this->createAccessDeniedException('Access denied');
         }
 
-        // Retrieve the Projet entity based on the provided projetid
+        $user = $userRepository->find($userid);
         $projet = $projetRepository->find($projetid);
 
-        if (!$projet) {
-            throw $this->createNotFoundException('Projet not found');
+        if (!$user || !$projet) {
+            throw $this->createNotFoundException('User or Projet not found');
         }
 
         $paiement = new Paiement();
-        $paiement->setUser($user);
-        $paiement->setProjet($projet);
+
 
         $form = $this->createForm(Paiement1Type::class, $paiement);
         $form->handleRequest($request);
@@ -60,6 +57,7 @@ class PaiementController extends AbstractController
             'form' => $form,
         ]);
     }
+    
     #[Route('/{id}', name: 'app_paiement_show', methods: ['GET'])]
     public function show(Paiement $paiement): Response
     {

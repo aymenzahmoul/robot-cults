@@ -6,13 +6,47 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+use PhpParser\Node\Stmt\For_;
+
+#[ApiResource(
+    collectionOperations: [],
+    itemOperations: [
+        'get',
+        'change_role' => [
+            'method' => 'PUT',
+            'controller' => UserController::class,
+            'path' => '/users/{id}/change-role/{newRole}',
+            'deserialize' => false,
+            'openapi_context' => [
+                'parameters' => [
+                    [
+                        'name' => 'id',
+                        'in' => 'path',
+                        'required' => true,
+                        'type' => 'integer',
+                    ],
+                    [
+                        'name' => 'newRole',
+                        'in' => 'path',
+                        'required' => true,
+                        'type' => 'string', // Change the type to 'string'
+                        'enum' => ['role1', 'role2', 'role3'], // Define possible role values
+                    ],
+                ],
+            ],
+        ],
+    ],
+)]
+
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface 
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -40,20 +74,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $adresse = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Paiement::class)]
-    private Collection $Paiement;
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Contribution::class)]
+    private Collection $Contribution;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: MaisonDeCulte::class)]
     private Collection $MaisonDeCulte;
 
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'users')]
+    private Collection $Role;
+
+
+
     public function __construct()
     {
-        $this->Paiement = new ArrayCollection();
+        $this->Contribution = new ArrayCollection();
         $this->MaisonDeCulte = new ArrayCollection();
+        $this->Role = new ArrayCollection();
+      
     }
 
-
-    
     public function getId(): ?int
     {
         return $this->id;
@@ -84,14 +123,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
-    }
 
     public function setRoles(array $roles): static
     {
@@ -99,6 +131,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+
 
     /**
      * @see PasswordAuthenticatedUserInterface
@@ -161,29 +195,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Paiement>
+     * @return Collection<int, Contribution>
      */
-    public function getPaiement(): Collection
+    public function getContribution(): Collection
     {
-        return $this->Paiement;
+        return $this->Contribution;
     }
 
-    public function addPaiement(Paiement $paiement): static
+    public function addContribution(Contribution $contribution): static
     {
-        if (!$this->Paiement->contains($paiement)) {
-            $this->Paiement->add($paiement);
-            $paiement->setUser($this);
+        if (!$this->Contribution->contains($contribution)) {
+            $this->Contribution->add($contribution);
+            $contribution->setUser($this);
         }
 
         return $this;
     }
 
-    public function removePaiement(Paiement $paiement): static
+    public function removePaiement(Contribution $contribution): static
     {
-        if ($this->Paiement->removeElement($paiement)) {
+        if ($this->Contribution->removeElement($contribution)) {
             // set the owning side to null (unless already changed)
-            if ($paiement->getUser() === $this) {
-                $paiement->setUser(null);
+            if ($contribution->getUser() === $this) {
+                $contribution->setUser(null);
             }
         }
 
@@ -219,6 +253,52 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+   
 
+    public function getRoles(): array
+    {       
+        $userRoles = $this->getRole();
+        $roles = [];
+        
+        $roles[] = 'ROLE_USER';
+        
+        foreach ($userRoles as $userRole) {
+           $roles[] = $userRole->getRoleName();
+        }
+        
+        return array_unique($roles);
+    }
+    
+  
+
+
+    public function isAdmin(): bool
+    {
+        return in_array('ROLE_ADMIN', $this->roles);
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function getRole(): Collection
+    {
+        return $this->Role;
+    }
+
+    public function addRole(Role $role): static
+    {
+        if (!$this->Role->contains($role)) {
+            $this->Role->add($role);
+        }
+
+        return $this;
+    }
+
+    public function removeRole(Role $role): static
+    {
+        $this->Role->removeElement($role);
+
+        return $this;
+    }
 
 }
